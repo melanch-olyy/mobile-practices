@@ -21,5 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "MyFirstProject"
 include(":app")
-include(":test")
- 
+
+include(":layouttype")
+include(":control_lesson1")
+include(":buttonclicker")
