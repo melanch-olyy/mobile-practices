@@ -33,16 +33,24 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    buildFeatures {
+        viewBinding = true
+    }
+
 }
 
 dependencies {
     implementation("androidx.navigation:navigation-fragment:2.7.7")
     implementation("androidx.navigation:navigation-ui:2.7.7")
     implementation("com.google.android.material:material:1.11.0")
+    implementation("androidx.work:work-runtime:2.8.1")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.activity)
     implementation(libs.constraintlayout)
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui.ktx)
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

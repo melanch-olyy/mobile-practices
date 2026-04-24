@@ -18,5 +18,10 @@
             android:icon="@android:drawable/ic_menu_search"
             android:title="@string/menu_webview" />
 
+        <item
+            android:id="@+id/nav_worker"
+            android:icon="@android:drawable/ic_menu_manage"
+            android:title="Фоновая задача" />
+
     </group>
 </menu>
