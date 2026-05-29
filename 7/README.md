@@ -43,7 +43,7 @@ JJJJJ YY-MM-DD HH:MM:SS TT L H msADV UTC(NIST) OTM\n
 
 Приложение выводит дату (в формате `DD.MM.YYYY`), время UTC, источник (`time.nist.gov:13`) и исходную строку ответа.
 
-![Экран приложения TimeService](report-images/timeservice_main.png)
+**Экран приложения TimeService** ![alt text](report-images/timescreen.png)
 
 #### Ключевые фрагменты кода
 
