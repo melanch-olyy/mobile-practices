@@ -175,8 +175,6 @@ API-ключ в `AndroidManifest.xml`:
     android:value="YOUR_YANDEX_MAPKIT_API_KEY" />
 ```
 
-![YandexMaps — местоположение пользователя](report-images/yandexmaps_location.png)
-
 ---
 
 ### 3.2 Модуль YandexDriver — построение маршрутов
@@ -537,7 +535,7 @@ implementation 'androidx.preference:preference:1.2.0'
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 ```
 
-**OSMMaps — заведения и маркер** ![alt text](report-images/osm.png)
+**OSMMaps — маркеры** ![alt text](report-images/osm.png)
 
 ---
 
