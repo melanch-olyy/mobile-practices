@@ -37,7 +37,7 @@
 
 Жизненный цикл MapKit корректно связан с жизненным циклом активности: `MapKitFactory.getInstance().onStart()` / `onStop()`.
 
-![Экран YandexMaps — карта Москвы](report-images/yandexmaps_main.png)
+**Экран YandexMaps — карта Москвы** ![alt text](report-images/maps.png)
 
 #### Ключевые фрагменты кода
 
@@ -189,7 +189,6 @@ API-ключ в `AndroidManifest.xml`:
 
 Для получения последнего известного местоположения используется `LocationManager` с двумя провайдерами: `GPS_PROVIDER` имеет приоритет над `NETWORK_PROVIDER`.
 
-![Экран YandexDriver — маршруты](report-images/yandexdriver_main.png)
 
 #### Ключевые фрагменты кода
 
@@ -352,7 +351,7 @@ private final MapObjectTapListener favoritePlaceTapListener = new MapObjectTapLi
 };
 ```
 
-![YandexDriver — построенные маршруты](report-images/yandexdriver_routes.png)
+**Экран YandexDriver — построенные маршруты** ![alt text](report-images/yadriver.png)
 
 ---
 
@@ -366,138 +365,136 @@ private final MapObjectTapListener favoritePlaceTapListener = new MapObjectTapLi
 - **`MyLocationNewOverlay`** — наложение с текущим местоположением пользователя и следованием камеры
 - **`CompassOverlay`** — компас в углу карты
 - **`ScaleBarOverlay`** — масштабная линейка, центрированная по горизонтали
-- **`Marker`** — маркер с заголовком, описанием и кастомной иконкой, с обработчиком нажатия
+- **`Markers`** — маркеры с заголовком, описанием и кастомной иконкой, с обработчиками нажатия
 
-Конфигурация osmdroid (`Configuration.getInstance()`) инициализируется в `onCreate()` с `UserAgent`, равным имени пакета — это обязательное требование для корректной загрузки тайлов.
+Конфигурация osmdroid (`Configuration.getInstance()`) инициализируется в `onCreate()`.
 
-![Экран OSMMaps — карта OpenStreetMap](report-images/osmmaps_main.png)
 
 #### Ключевые фрагменты кода
 
-Инициализация конфигурации osmdroid:
+Инициализация конфигурации osmdroid и настройка карты:
 
 ```java
 @Override
 protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    Configuration.getInstance().load(
-            getApplicationContext(),
-            PreferenceManager.getDefaultSharedPreferences(getApplicationContext())
-    );
+    Configuration.getInstance().load(getApplicationContext(),
+            PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
 
-    Configuration.getInstance().setUserAgentValue(getPackageName());
+    binding = ActivityMainBinding.inflate(getLayoutInflater());
+    setContentView(binding.getRoot());
 
-    setContentView(R.layout.activity_main);
-    // ...
-}
-```
-
-Настройка карты:
-
-```java
-private static final GeoPoint START_POINT = new GeoPoint(55.794229, 37.700772);
-
-private void setupMap() {
+    mapView = binding.mapView;
     mapView.setTileSource(TileSourceFactory.MAPNIK);
-    mapView.setBuiltInZoomControls(true);
     mapView.setZoomRounding(true);
     mapView.setMultiTouchControls(true);
 
     IMapController mapController = mapView.getController();
-    mapController.setZoom(15.0);
-    mapController.setCenter(START_POINT);
+    mapController.setZoom(12.0);
+    GeoPoint startPoint = new GeoPoint(55.6697, 37.4821);
+    mapController.setCenter(startPoint);
 }
 ```
 
-Наложение местоположения пользователя:
+Данные о маркерах:
 
 ```java
-private void addLocationOverlay() {
+private static final double[][] MARKER_COORDS = {
+        {55.6697, 37.4821},  // РТУ МИРЭА
+        {55.7539, 37.6208},  // Красная площадь
+        {55.7288, 37.6006},  // Парк Горького
+        {55.7415, 37.6208}   // Третьяковская галерея
+};
+
+private static final String[] MARKER_TITLES = {
+        "РТУ МИРЭА",
+        "Красная площадь",
+        "Парк Горького",
+        "Третьяковская галерея"
+};
+
+private static final String[] MARKER_DESCRIPTIONS = {
+        "Российский технологический университет МИРЭА",
+        "Главная площадь России, объект Всемирного наследия ЮНЕСКО",
+        "Центральный парк культуры и отдыха имени Горького",
+        "Государственная Третьяковская галерея — коллекция русского искусства"
+};
+```
+
+Запрос разрешения на геолокацию и включение слоя местоположения:
+
+```java
+private void requestLocationPermission() {
+    if (ContextCompat.checkSelfPermission(this,
+            Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        ActivityCompat.requestPermissions(this,
+                new String[]{
+                        Manifest.permission.ACCESS_FINE_LOCATION,
+                        Manifest.permission.ACCESS_COARSE_LOCATION
+                },
+                LOCATION_PERMISSION_REQUEST);
+    } else {
+        enableMyLocation();
+    }
+}
+
+private void enableMyLocation() {
     locationNewOverlay = new MyLocationNewOverlay(
-            new GpsMyLocationProvider(getApplicationContext()),
-            mapView
-    );
-
+            new GpsMyLocationProvider(getApplicationContext()), mapView);
     locationNewOverlay.enableMyLocation();
-    locationNewOverlay.enableFollowLocation();
-
     mapView.getOverlays().add(locationNewOverlay);
-    mapView.invalidate();
-
-    textViewStatus.setText("Слой местоположения включен");
 }
 ```
 
 Добавление компаса:
 
 ```java
-private void addCompass() {
-    CompassOverlay compassOverlay = new CompassOverlay(
-            getApplicationContext(),
-            new InternalCompassOrientationProvider(getApplicationContext()),
-            mapView
-    );
-
-    compassOverlay.enableCompass();
-    mapView.getOverlays().add(compassOverlay);
-}
+CompassOverlay compassOverlay = new CompassOverlay(getApplicationContext(),
+        new InternalCompassOrientationProvider(getApplicationContext()), mapView);
+compassOverlay.enableCompass();
+mapView.getOverlays().add(compassOverlay);
 ```
 
 Добавление масштабной линейки с центрированием:
 
 ```java
-private void addScaleBar() {
-    Context context = getApplicationContext();
-    DisplayMetrics displayMetrics = context.getResources().getDisplayMetrics();
-
-    ScaleBarOverlay scaleBarOverlay = new ScaleBarOverlay(mapView);
-    scaleBarOverlay.setCentred(true);
-    scaleBarOverlay.setScaleBarOffset(displayMetrics.widthPixels / 2, 10);
-
-    mapView.getOverlays().add(scaleBarOverlay);
-}
+final Context context = getApplicationContext();
+final DisplayMetrics dm = context.getResources().getDisplayMetrics();
+ScaleBarOverlay scaleBarOverlay = new ScaleBarOverlay(mapView);
+        scaleBarOverlay.setCentred(true);
+        scaleBarOverlay.setScaleBarOffset(dm.widthPixels / 2, 10);
+        mapView.getOverlays().add(scaleBarOverlay);
 ```
 
-Добавление маркера с кастомной иконкой из библиотеки osmdroid и обработчиком нажатия:
+Добавление маркеров с обработчиками нажатия:
 
 ```java
-private static final String MARKER_TITLE = "Точка на карте";
-private static final String MARKER_DESCRIPTION = "Маркер OpenStreetMap";
+private void addInterestMarkers() {
+    for (int i = 0; i < MARKER_TITLES.length; i++) {
+        Marker marker = new Marker(mapView);
+        marker.setPosition(new GeoPoint(MARKER_COORDS[i][0], MARKER_COORDS[i][1]));
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        marker.setTitle(MARKER_TITLES[i]);
+        marker.setSnippet(MARKER_DESCRIPTIONS[i]);
 
-private void addMarker() {
-    Marker marker = new Marker(mapView);
+        marker.setIcon(ResourcesCompat.getDrawable(
+                getResources(),
+                org.osmdroid.library.R.drawable.osm_ic_follow_me_on,
+                null));
 
-    marker.setPosition(START_POINT);
-    marker.setTitle(MARKER_TITLE);
-    marker.setSubDescription(MARKER_DESCRIPTION);
-    marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-
-    marker.setIcon(
-            ResourcesCompat.getDrawable(
-                    getResources(),
-                    org.osmdroid.library.R.drawable.osm_ic_follow_me_on,
-                    null
-            )
-    );
-
-    marker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
-        @Override
-        public boolean onMarkerClick(Marker marker, MapView mapView) {
-            Toast.makeText(
-                    getApplicationContext(),
-                    marker.getTitle() + "\n" + MARKER_DESCRIPTION,
-                    Toast.LENGTH_SHORT
-            ).show();
-
-            marker.showInfoWindow();
-
+        final String title = MARKER_TITLES[i];
+        final String desc = MARKER_DESCRIPTIONS[i];
+        marker.setOnMarkerClickListener((m, mv) -> {
+            Toast.makeText(getApplicationContext(),
+                    title + "\n" + desc,
+                    Toast.LENGTH_SHORT).show();
+            m.showInfoWindow();
             return true;
-        }
-    });
+        });
 
-    mapView.getOverlays().add(marker);
-    mapView.invalidate();
+        mapView.getOverlays().add(marker);
+    }
 }
 ```
 
@@ -505,24 +502,31 @@ private void addMarker() {
 
 ```java
 @Override
-protected void onResume() {
+public void onResume() {
     super.onResume();
-    if (mapView != null) mapView.onResume();
-    if (locationNewOverlay != null) locationNewOverlay.enableMyLocation();
+    Configuration.getInstance().load(getApplicationContext(),
+            PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
+    if (mapView != null) {
+        mapView.onResume();
+    }
 }
 
 @Override
-protected void onPause() {
-    if (locationNewOverlay != null) locationNewOverlay.disableMyLocation();
-    if (mapView != null) mapView.onPause();
+public void onPause() {
     super.onPause();
+    Configuration.getInstance().save(getApplicationContext(),
+            PreferenceManager.getDefaultSharedPreferences(getApplicationContext()));
+    if (mapView != null) {
+        mapView.onPause();
+    }
 }
 ```
 
-Зависимость в `build.gradle`:
+Зависимости в `build.gradle`:
 
 ```groovy
 implementation 'org.osmdroid:osmdroid-android:6.1.16'
+implementation 'androidx.preference:preference:1.2.0'
 ```
 
 Разрешения в `AndroidManifest.xml`:
@@ -533,7 +537,7 @@ implementation 'org.osmdroid:osmdroid-android:6.1.16'
 <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
 ```
 
-![OSMMaps — маркер и компас](report-images/osmmaps_marker.png)
+**OSMMaps — заведения и маркер** ![alt text](report-images/osm.png)
 
 ---
 
@@ -555,7 +559,6 @@ implementation 'org.osmdroid:osmdroid-android:6.1.16'
 
 Расчёт точек круга реализован по формуле сферической тригонометрии с радиусом Земли 6 378 137 м, шаг угла — 10°.
 
-![PlacesFragment — карта с заведениями](report-images/mirea_places_map.png)
 
 #### Ключевые фрагменты кода
 
@@ -724,7 +727,7 @@ private void showUserLocation() {
 }
 ```
 
-![PlacesFragment — радиус 500 м вокруг заведения](report-images/mirea_places_radius.png)
+**PlacesFragment — радиус 500 м вокруг заведения** ![alt text](report-images/mireaosm.png)
 
 ---
 
@@ -732,11 +735,11 @@ private void showUserLocation() {
 
 В ходе практической работы реализованы и изучены следующие картографические возможности Android:
 
-| Модуль | SDK / Библиотека | Реализованные функции |
-|---|---|---|
-| YandexMaps | Яндекс MapKit 4.x | Базовая карта, плавная анимация камеры, `UserLocationLayer`, настройка иконок местоположения |
-| YandexDriver | Яндекс MapKit + Directions | Получение текущего местоположения, построение до 4 маршрутов, цветные полилинии, маркеры |
-| OSMMaps | osmdroid 6.1.x | OpenStreetMap, компас, масштабная линейка, `MyLocationNewOverlay`, маркер с обработчиком |
+| Модуль | SDK / Библиотека | Реализованные функции                                                                             |
+|---|---|---------------------------------------------------------------------------------------------------|
+| YandexMaps | Яндекс MapKit 4.x | Базовая карта, плавная анимация камеры, `UserLocationLayer`, настройка иконок местоположения      |
+| YandexDriver | Яндекс MapKit + Directions | Получение текущего местоположения, построение до 4 маршрутов, цветные полилинии, маркеры          |
+| OSMMaps | osmdroid 6.1.x | OpenStreetMap, компас, масштабная линейка, `MyLocationNewOverlay`, 4 маркера с обработчиком       |
 | MireaProject PlacesFragment | osmdroid 6.1.x | 4 маркера московских заведений, полигон-круг 500 м, кнопки навигации, местоположение пользователя |
 
 Изучены два принципиально разных подхода к картографии в Android: коммерческий SDK Яндекс MapKit с богатым API маршрутизации и бесплатная open-source библиотека osmdroid на базе OpenStreetMap. Оба SDK требуют корректной обработки разрешений на местоположение во время выполнения (runtime permissions) и привязки к жизненному циклу Activity/Fragment. Реализован алгоритм построения окружности через сферическую тригонометрию для отображения зоны покрытия вокруг выбранного места.
